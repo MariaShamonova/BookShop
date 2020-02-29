@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-configuration xmlns:tx="http://www.springframework.org/schema/tx"
+                         xmlns:context="http://www.springframework.org/schema/context"
+                         xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:mvc="http://www.springframework.org/schema/mvc">
+    <session-factory>
+
+        <bean
+                class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+            <property name="prefix" value="/templates/" />
+            <property name="suffix" value=".mustache" />
+        </bean>
+
+        <!-- Database connection settings -->
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/bookshop?autoReconnect=true&amp;useSSL=false&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC</property>
+        <property name="connection.username">dbuser</property>
+        <property name="connection.password">root</property>
+        <!-- JDBC connection pool (use the built-in) -->
+        <property name="connection.pool_size">1</property>
+        <!-- SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+        <!-- Enable Hibernate's automatic session context management -->
+        <property name="current_session_context_class">thread</property>
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">true</property>
+        <!-- Drop and re-create the database schema on startup -->
+        <property name="hbm2ddl.auto">update</property>
+
+        <bean id="hibernate4AnnotatedSessionFactory"
+              class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+            <property name="dataSource" ref="dataSource"/>
+            <property name="annotatedClasses">
+                <list>
+                    <value>net.proselyte.bookmanager.model.Book</value>
+                </list>
+            </property>
+            <property name="hibernateProperties">
+                <props>
+                    <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect
+                    </prop>
+                    <prop key="hibernate.show_sql">true</prop>
+                </props>
+            </property>
+        </bean>
+
+        <!--BookDao and BookService beans-->
+        <bean id="bookDao" class="com.example.servingwebcontent.dao.BookDaoImpl">
+            <property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory"/>
+        </bean>
+
+        <bean id="bookService" class="com.example.servingwebcontent.service.BookServiceImpl">
+            <property name="bookDao" ref="bookDao"/>
+        </bean>
+
+        <context:component-scan base-package="net.proselyte.bookshop"/>
+
+        <tx:annotation-driven transaction-manager="transactionManager"/>
+
+        <bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+            <property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory"/>
+        </bean>
+
+        <mapping class="com.example.servingwebcontent.domain.Book"></mapping>
+
+        <mvc:default-servlet-handler/>
+        <mvc:annotation-driven/>
+    </session-factory>
+</hibernate-configuration>
